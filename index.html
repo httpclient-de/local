@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Offline HTTP client — send requests, inspect responses. Installable PWA." />
+  <meta name="theme-color" content="#0d1117" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="httpclient" />
+
+  <!-- iOS splash / Safari -->
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <title>httpclient</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header id="header">
+    <div class="logo">
+      <div class="logo-icon">⇄</div>
+      httpclient
+      <span class="logo-domain">local.httpclient.de</span>
+    </div>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-actions">
+      <!-- Offline indicator -->
+      <div id="offline-indicator">
+        <div class="offline-dot"></div>
+        offline
+      </div>
+
+      <!-- Install button (shown when installable) -->
+      <button id="install-btn" title="Install as app">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Install App
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Sidebar — History ────────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-label">History</span>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Loading bar -->
+    <div id="loading-bar"><div id="loading-bar-fill"></div></div>
+
+    <!-- Request Panel -->
+    <section id="request-panel">
+
+      <!-- URL Bar -->
+      <div class="url-bar">
+        <select class="method-select" id="method-select" data-method="GET">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+          <option value="HEAD">HEAD</option>
+          <option value="OPTIONS">OPTIONS</option>
+        </select>
+
+        <input
+          id="url-input"
+          class="url-input"
+          type="url"
+          placeholder="https://api.example.com/endpoint"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+
+        <button id="send-btn" class="btn-send">
+          <div class="spinner"></div>
+          <span class="send-label">
+            Send
+            <span style="opacity:0.55;font-size:var(--text-xs);margin-left:4px">⌘↵</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Request Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="headers">
+          Headers
+          <span class="tab-badge" id="tab-headers-badge" style="display:none"></span>
+        </button>
+        <button class="tab-btn" data-tab="body">Body</button>
+        <button class="tab-btn" data-tab="proxy">Proxy</button>
+      </div>
+
+      <!-- Headers Panel -->
+      <div class="tab-panel active request-tabs-section" data-panel="headers">
+        <div id="headers-editor"></div>
+        <button class="btn-add-row" id="add-header-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Header
+        </button>
+      </div>
+
+      <!-- Body Panel -->
+      <div class="tab-panel request-tabs-section" data-panel="body">
+        <div class="body-type-select">
+          <button class="body-type-btn active" data-type="none">none</button>
+          <button class="body-type-btn" data-type="json">JSON</button>
+          <button class="body-type-btn" data-type="form">form-urlencoded</button>
+          <button class="body-type-btn" data-type="raw">raw</button>
+        </div>
+        <div id="body-wrap"></div>
+      </div>
+
+      <!-- Proxy Panel -->
+      <div class="tab-panel request-tabs-section" data-panel="proxy">
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-3);line-height:1.6">
+          Route requests through a proxy to bypass CORS restrictions.
+          Run <code style="font-family:var(--font-mono);background:var(--bg-elevated);padding:1px 5px;border-radius:3px">node proxy.js</code>
+          locally or provide any CORS-anywhere compatible proxy URL.
+        </p>
+        <div class="proxy-row">
+          <label class="proxy-toggle">
+            <input type="checkbox" id="proxy-toggle" />
+            Enable proxy
+          </label>
+          <input
+            id="proxy-url-input"
+            class="proxy-input"
+            type="url"
+            placeholder="http://localhost:8080"
+            value="http://localhost:8080"
+            disabled
+          />
+        </div>
+        <p style="color:var(--text-muted);font-size:var(--text-xs);margin-top:var(--space-2);line-height:1.5">
+          Requests will be sent as: <code style="font-family:var(--font-mono)">{proxy}/{original-url}</code>
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Response Panel -->
+    <section id="response-panel">
+      <div id="response-header" class="response-header"></div>
+      <div id="response-output" class="response-body-wrap"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Update Banner -->
+<div id="update-banner">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+  <span style="font-size:var(--text-sm);color:var(--text-secondary)">Update available</span>
+  <button id="update-reload-btn" style="background:var(--accent);border:none;border-radius:var(--radius-sm);color:var(--bg-base);font-size:var(--text-xs);font-weight:600;padding:4px 10px;cursor:pointer">Reload</button>
+  <button id="update-dismiss-btn" class="btn-icon" style="border:none;background:none" title="Dismiss">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
