@@ -887,3 +887,183 @@ body.offline .offline-dot { background: var(--orange); }
   }
   #sidebar { display: none; }
 }
+
+/* ── Light Theme ─────────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-base:       #f6f8fa;
+  --bg-surface:    #ffffff;
+  --bg-elevated:   #eaeef2;
+  --bg-hover:      #e4e9ef;
+  --bg-input:      #ffffff;
+  --border:        #d0d7de;
+  --border-strong: #afb8c1;
+  --text-primary:  #1f2328;
+  --text-secondary:#57606a;
+  --text-muted:    #afb8c1;
+  --accent-dim:    rgba(var(--accent-rgb), 0.12);
+  --accent-glow:   rgba(var(--accent-rgb), 0.07);
+}
+
+/* ── Accent RGB helper (updated by JS) ───────────────────────────────────────── */
+:root { --accent-rgb: 230, 168, 23; }
+
+/* ── Customization button ────────────────────────────────────────────────────── */
+#customize-btn {
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-secondary);
+  width: 28px; height: 28px; cursor: pointer;
+  transition: all var(--duration); flex-shrink: 0;
+}
+#customize-btn:hover, #customize-btn[aria-expanded="true"] {
+  background: var(--bg-hover); border-color: var(--accent); color: var(--accent);
+}
+
+/* ── Popover backdrop ────────────────────────────────────────────────────────── */
+#customize-backdrop { display: none; position: fixed; inset: 0; z-index: 490; }
+#customize-backdrop.open { display: block; }
+
+/* ── Popover panel ───────────────────────────────────────────────────────────── */
+#customize-popover {
+  display: none; flex-direction: column;
+  position: fixed; top: 52px; right: var(--space-4);
+  width: 300px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.12);
+  z-index: 500; overflow: hidden;
+  transform-origin: top right;
+}
+#customize-popover.open {
+  display: flex;
+  animation: popoverIn 0.18s var(--ease) forwards;
+}
+@keyframes popoverIn {
+  from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.popover-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border);
+}
+.popover-title { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+.popover-close {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  padding: 2px; border-radius: var(--radius-sm); display: flex;
+  align-items: center; justify-content: center; transition: color var(--duration);
+}
+.popover-close:hover { color: var(--text-primary); }
+
+.popover-body {
+  padding: var(--space-3) var(--space-4); display: flex; flex-direction: column;
+  gap: var(--space-4); max-height: 70vh; overflow-y: auto;
+}
+
+.popover-section { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.popover-section-label {
+  font-size: var(--text-xs); font-weight: 600; color: var(--text-muted);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ── Theme toggle ────────────────────────────────────────────────────────────── */
+.theme-toggle {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3px; background: var(--bg-elevated);
+  border-radius: var(--radius-md); padding: 3px;
+}
+.theme-option {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--space-2); padding: 6px var(--space-3);
+  border-radius: calc(var(--radius-md) - 2px); border: none;
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--font-ui); font-size: var(--text-sm);
+  font-weight: 500; cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+.theme-option.active {
+  background: var(--bg-surface); color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ── Accent swatches ─────────────────────────────────────────────────────────── */
+.accent-swatches { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.accent-swatch {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: all var(--duration) var(--ease); position: relative;
+}
+.accent-swatch:hover { transform: scale(1.15); }
+.accent-swatch.active {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+.accent-swatch.custom-swatch {
+  background: conic-gradient(
+    hsl(0,80%,55%), hsl(40,80%,55%), hsl(80,80%,50%), hsl(130,60%,45%),
+    hsl(190,70%,50%), hsl(230,70%,60%), hsl(280,70%,60%), hsl(360,80%,55%)
+  );
+}
+.accent-swatch.custom-swatch input[type="color"] {
+  opacity: 0; position: absolute; inset: 0;
+  width: 100%; height: 100%; cursor: pointer; border: none; padding: 0;
+}
+
+/* ── Font selects ────────────────────────────────────────────────────────────── */
+.font-row { display: flex; flex-direction: column; gap: 4px; }
+.font-row-label { font-size: var(--text-xs); color: var(--text-secondary); font-weight: 500; }
+.font-select {
+  appearance: none; background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-primary);
+  font-family: var(--font-ui); font-size: var(--text-sm);
+  padding: 6px var(--space-3); width: 100%; outline: none;
+  cursor: pointer; transition: border-color var(--duration);
+}
+.font-select:focus { border-color: var(--accent); }
+.font-preview {
+  font-size: 11px; color: var(--text-muted); padding: 2px 0;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* ── Font size slider ────────────────────────────────────────────────────────── */
+.slider-row { display: flex; align-items: center; gap: var(--space-3); }
+.range-slider {
+  flex: 1; appearance: none; height: 4px;
+  background: var(--bg-elevated); border-radius: 99px; outline: none; cursor: pointer;
+}
+.range-slider::-webkit-slider-thumb {
+  appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; transition: transform var(--duration);
+}
+.range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.range-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; border: none;
+  background: var(--accent); cursor: pointer;
+}
+.slider-value {
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--text-secondary); min-width: 30px; text-align: right;
+}
+
+/* ── Popover footer ──────────────────────────────────────────────────────────── */
+.popover-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-2) var(--space-4); border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.btn-reset {
+  background: none; border: none; color: var(--text-muted);
+  font-family: var(--font-ui); font-size: var(--text-xs);
+  cursor: pointer; padding: 3px 0; transition: color var(--duration);
+}
+.btn-reset:hover { color: var(--red); }
+.saved-indicator {
+  font-size: var(--text-xs); color: var(--green);
+  opacity: 0; transition: opacity 0.3s;
+}
+.saved-indicator.show { opacity: 1; }
+
+/* ── Mobile override ─────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  #customize-popover { right: var(--space-2); left: var(--space-2); width: auto; }
+}

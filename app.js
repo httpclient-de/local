@@ -624,3 +624,245 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ── Customization ─────────────────────────────────────────────────────────────
+
+const PREFS_KEY = 'httpclient-prefs';
+
+const DEFAULTS = {
+  theme:     'dark',
+  accent:    '#e6a817',
+  accentRgb: '230,168,23',
+  fontUi:    "'DM Sans', system-ui, sans-serif",
+  fontMono:  "'JetBrains Mono', monospace",
+  fontSize:  13,
+};
+
+// Google Fonts we might need to load at runtime
+const GF_MAP = {
+  "'Inter', system-ui, sans-serif":           'Inter',
+  "'Geist', system-ui, sans-serif":           'Geist',
+  "'Nunito', system-ui, sans-serif":          'Nunito',
+  "'Fira Code', monospace":                   'Fira+Code',
+  "'Cascadia Code', monospace":               null,  // no GF, fallback gracefully
+  "'IBM Plex Mono', monospace":               'IBM+Plex+Mono',
+  "'Source Code Pro', monospace":             'Source+Code+Pro',
+};
+
+function loadGoogleFont(fontValue) {
+  const name = GF_MAP[fontValue];
+  if (!name) return; // system font or unavailable
+  const id = 'gf-' + name.replace(/\+/g, '-');
+  if (document.getElementById(id)) return; // already loaded
+  const link = document.createElement('link');
+  link.id   = id;
+  link.rel  = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${name}:wght@300;400;500;600&display=swap`;
+  document.head.appendChild(link);
+}
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+  } catch { return { ...DEFAULTS }; }
+}
+
+function savePrefs(prefs) {
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+}
+
+function applyPrefs(prefs) {
+  const root = document.documentElement;
+
+  // Theme
+  root.setAttribute('data-theme', prefs.theme);
+
+  // Accent
+  root.style.setProperty('--accent', prefs.accent);
+  root.style.setProperty('--accent-rgb', prefs.accentRgb);
+  root.style.setProperty('--accent-dim', `rgba(${prefs.accentRgb}, 0.15)`);
+  root.style.setProperty('--accent-glow', `rgba(${prefs.accentRgb}, 0.08)`);
+
+  // Fonts
+  loadGoogleFont(prefs.fontUi);
+  loadGoogleFont(prefs.fontMono);
+  root.style.setProperty('--font-ui',   prefs.fontUi);
+  root.style.setProperty('--font-mono', prefs.fontMono);
+
+  // Font size (base --text-base drives everything relative)
+  const sz = prefs.fontSize;
+  root.style.setProperty('--text-base', sz + 'px');
+  root.style.setProperty('--text-xs',   (sz - 2) + 'px');
+  root.style.setProperty('--text-sm',   (sz - 1) + 'px');
+  root.style.setProperty('--text-md',   (sz + 1) + 'px');
+  root.style.setProperty('--text-lg',   (sz + 3) + 'px');
+}
+
+function syncPopoverToPrefs(prefs) {
+  // Theme buttons
+  $$('[data-theme]', $('#customize-popover')).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === prefs.theme);
+  });
+
+  // Accent swatches
+  $$('.accent-swatch:not(.custom-swatch)').forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === prefs.accent);
+  });
+
+  // Custom colour input
+  const customInput = $('#accent-custom-input');
+  if (customInput) customInput.value = prefs.accent;
+
+  // Font selects
+  const uiSel   = $('#font-ui-select');
+  const monoSel = $('#font-mono-select');
+  if (uiSel)   uiSel.value   = prefs.fontUi;
+  if (monoSel) monoSel.value = prefs.fontMono;
+  updateFontPreviews(prefs);
+
+  // Font size slider
+  const slider = $('#font-size-slider');
+  const label  = $('#font-size-value');
+  if (slider) slider.value  = prefs.fontSize;
+  if (label)  label.textContent = prefs.fontSize + 'px';
+}
+
+function updateFontPreviews(prefs) {
+  const uiPrev   = $('#font-ui-preview');
+  const monoPrev = $('#font-mono-preview');
+  if (uiPrev)   uiPrev.style.fontFamily   = prefs.fontUi;
+  if (monoPrev) monoPrev.style.fontFamily = prefs.fontMono;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
+}
+
+function showSavedIndicator() {
+  const el = $('#saved-indicator');
+  if (!el) return;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1600);
+}
+
+function wireCustomization() {
+  const btn      = $('#customize-btn');
+  const popover  = $('#customize-popover');
+  const backdrop = $('#customize-backdrop');
+  const closeBtn = $('#customize-close');
+  if (!btn || !popover) return;
+
+  let prefs = loadPrefs();
+  applyPrefs(prefs);
+  syncPopoverToPrefs(prefs);
+
+  function openPopover() {
+    popover.classList.add('open');
+    backdrop.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    syncPopoverToPrefs(prefs); // always in sync on open
+  }
+
+  function closePopover() {
+    popover.classList.remove('open');
+    backdrop.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  btn.addEventListener('click', () => {
+    popover.classList.contains('open') ? closePopover() : openPopover();
+  });
+  closeBtn.addEventListener('click', closePopover);
+  backdrop.addEventListener('click', closePopover);
+
+  // Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popover.classList.contains('open')) closePopover();
+  });
+
+  // ── Theme toggle ────────────────────────────────────────────────────────────
+  popover.addEventListener('click', (e) => {
+    const themeBtn = e.target.closest('[data-theme]');
+    if (!themeBtn || themeBtn.closest('.accent-swatches')) return; // guard accent swatches
+    prefs.theme = themeBtn.dataset.theme;
+    applyPrefs(prefs);
+    syncPopoverToPrefs(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // ── Accent swatches ─────────────────────────────────────────────────────────
+  $('#accent-swatches').addEventListener('click', (e) => {
+    const sw = e.target.closest('.accent-swatch:not(.custom-swatch)');
+    if (!sw) return;
+    prefs.accent    = sw.dataset.color;
+    prefs.accentRgb = sw.dataset.rgb;
+    applyPrefs(prefs);
+    syncPopoverToPrefs(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // Custom colour picker
+  const customInput = $('#accent-custom-input');
+  customInput.addEventListener('input', (e) => {
+    prefs.accent    = e.target.value;
+    prefs.accentRgb = hexToRgb(e.target.value);
+    // Mark custom swatch active, clear others
+    $$('.accent-swatch:not(.custom-swatch)').forEach(sw => sw.classList.remove('active'));
+    e.target.closest('.custom-swatch').classList.add('active');
+    applyPrefs(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // ── Font UI select ──────────────────────────────────────────────────────────
+  $('#font-ui-select').addEventListener('change', (e) => {
+    prefs.fontUi = e.target.value;
+    applyPrefs(prefs);
+    updateFontPreviews(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // ── Font Mono select ────────────────────────────────────────────────────────
+  $('#font-mono-select').addEventListener('change', (e) => {
+    prefs.fontMono = e.target.value;
+    applyPrefs(prefs);
+    updateFontPreviews(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // ── Font size slider ────────────────────────────────────────────────────────
+  $('#font-size-slider').addEventListener('input', (e) => {
+    prefs.fontSize = parseInt(e.target.value, 10);
+    $('#font-size-value').textContent = prefs.fontSize + 'px';
+    applyPrefs(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+
+  // ── Reset ───────────────────────────────────────────────────────────────────
+  $('#customize-reset').addEventListener('click', () => {
+    prefs = { ...DEFAULTS };
+    applyPrefs(prefs);
+    syncPopoverToPrefs(prefs);
+    savePrefs(prefs);
+    showSavedIndicator();
+  });
+}
+
+// Patch init() to call wireCustomization after DOM is ready
+const _origInit = init;
+// Re-export: since init is called via DOMContentLoaded, we append wireCustomization there too.
+document.addEventListener('DOMContentLoaded', () => {
+  // Load and apply prefs immediately (before paint) to avoid flash
+  const prefs = loadPrefs();
+  applyPrefs(prefs);
+  wireCustomization();
+});

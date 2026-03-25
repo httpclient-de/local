@@ -16,6 +16,31 @@
   <!-- iOS splash / Safari -->
   <meta name="mobile-web-app-capable" content="yes" />
 
+  <!-- Prevent theme/accent flash on load -->
+  <script>
+    (function() {
+      try {
+        var p = JSON.parse(localStorage.getItem('httpclient-prefs') || '{}');
+        var theme  = p.theme  || 'dark';
+        var accent = p.accent || '#e6a817';
+        var rgb    = p.accentRgb || '230,168,23';
+        var sz     = p.fontSize  || 13;
+        var root   = document.documentElement;
+        root.setAttribute('data-theme', theme);
+        root.style.setProperty('--accent', accent);
+        root.style.setProperty('--accent-rgb', rgb);
+        root.style.setProperty('--accent-dim', 'rgba(' + rgb + ', 0.15)');
+        root.style.setProperty('--accent-glow', 'rgba(' + rgb + ', 0.08)');
+        root.style.setProperty('--font-ui',   p.fontUi   || "'DM Sans', system-ui, sans-serif");
+        root.style.setProperty('--font-mono', p.fontMono || "'JetBrains Mono', monospace");
+        root.style.setProperty('--text-base', sz + 'px');
+        root.style.setProperty('--text-xs',   (sz-2) + 'px');
+        root.style.setProperty('--text-sm',   (sz-1) + 'px');
+        root.style.setProperty('--text-md',   (sz+1) + 'px');
+        root.style.setProperty('--text-lg',   (sz+3) + 'px');
+      } catch(e) {}
+    })();
+  </script>
   <title>httpclient</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -39,6 +64,14 @@
         <div class="offline-dot"></div>
         offline
       </div>
+
+      <!-- Customization button -->
+      <button id="customize-btn" title="Customization" aria-expanded="false" aria-controls="customize-popover">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
 
       <!-- Install button (shown when installable) -->
       <button id="install-btn" title="Install as app">
@@ -174,6 +207,111 @@
   <button id="update-dismiss-btn" class="btn-icon" style="border:none;background:none" title="Dismiss">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
+</div>
+
+
+<!-- Customization backdrop -->
+<div id="customize-backdrop"></div>
+
+<!-- Customization Popover -->
+<div id="customize-popover" role="dialog" aria-label="Customization" aria-modal="true">
+  <div class="popover-header">
+    <span class="popover-title">Customization</span>
+    <button class="popover-close" id="customize-close" title="Close">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="popover-body">
+
+    <!-- Theme -->
+    <div class="popover-section">
+      <div class="popover-section-label">Theme</div>
+      <div class="theme-toggle">
+        <button class="theme-option active" data-theme="dark">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          Dark
+        </button>
+        <button class="theme-option" data-theme="light">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Light
+        </button>
+      </div>
+    </div>
+
+    <!-- Accent Color -->
+    <div class="popover-section">
+      <div class="popover-section-label">Accent Color</div>
+      <div class="accent-swatches" id="accent-swatches">
+        <button class="accent-swatch active" data-color="#e6a817" data-rgb="230,168,23" style="background:#e6a817" title="Amber"></button>
+        <button class="accent-swatch" data-color="#58a6ff" data-rgb="88,166,255" style="background:#58a6ff" title="Blue"></button>
+        <button class="accent-swatch" data-color="#3fb950" data-rgb="63,185,80" style="background:#3fb950" title="Green"></button>
+        <button class="accent-swatch" data-color="#f85149" data-rgb="248,81,73" style="background:#f85149" title="Red"></button>
+        <button class="accent-swatch" data-color="#bc8cff" data-rgb="188,140,255" style="background:#bc8cff" title="Purple"></button>
+        <button class="accent-swatch" data-color="#ffa657" data-rgb="255,166,87" style="background:#ffa657" title="Orange"></button>
+        <button class="accent-swatch" data-color="#39c5cf" data-rgb="57,197,207" style="background:#39c5cf" title="Teal"></button>
+        <!-- Custom color picker -->
+        <button class="accent-swatch custom-swatch" title="Custom color" data-custom="true">
+          <input type="color" id="accent-custom-input" value="#e6a817" title="Pick custom accent color" />
+        </button>
+      </div>
+    </div>
+
+    <!-- UI Font -->
+    <div class="popover-section">
+      <div class="popover-section-label">Interface Font</div>
+      <div class="font-row">
+        <select class="font-select" id="font-ui-select">
+          <option value="'DM Sans', system-ui, sans-serif">DM Sans</option>
+          <option value="'Inter', system-ui, sans-serif">Inter</option>
+          <option value="system-ui, sans-serif">System UI</option>
+          <option value="'Geist', system-ui, sans-serif">Geist</option>
+          <option value="'Nunito', system-ui, sans-serif">Nunito</option>
+          <option value="Georgia, serif">Georgia (Serif)</option>
+        </select>
+        <div class="font-preview" id="font-ui-preview" style="font-family:var(--font-ui)">
+          The quick brown fox jumps over the lazy dog
+        </div>
+      </div>
+    </div>
+
+    <!-- Mono Font -->
+    <div class="popover-section">
+      <div class="popover-section-label">Code Font</div>
+      <div class="font-row">
+        <select class="font-select" id="font-mono-select">
+          <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+          <option value="'Fira Code', monospace">Fira Code</option>
+          <option value="'Cascadia Code', monospace">Cascadia Code</option>
+          <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
+          <option value="'Source Code Pro', monospace">Source Code Pro</option>
+          <option value="'Courier New', monospace">Courier New</option>
+          <option value="monospace">System Mono</option>
+        </select>
+        <div class="font-preview" id="font-mono-preview" style="font-family:var(--font-mono)">
+          { "status": 200, "ok": true }
+        </div>
+      </div>
+    </div>
+
+    <!-- Font Size -->
+    <div class="popover-section">
+      <div class="popover-section-label">Base Font Size</div>
+      <div class="slider-row">
+        <input type="range" class="range-slider" id="font-size-slider"
+               min="11" max="16" step="1" value="13" />
+        <span class="slider-value" id="font-size-value">13px</span>
+      </div>
+    </div>
+
+  </div><!-- /popover-body -->
+
+  <div class="popover-footer">
+    <button class="btn-reset" id="customize-reset">Reset to defaults</button>
+    <span class="saved-indicator" id="saved-indicator">✓ Saved</span>
+  </div>
 </div>
 
 <script src="/app.js"></script>

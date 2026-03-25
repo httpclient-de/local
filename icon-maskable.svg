@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background fills edge-to-edge (maskable — safe zone is central 80%) -->
+  <rect width="512" height="512" fill="#0d1117"/>
+  <!-- Arrow right (top) — scaled down to stay within safe zone -->
+  <g stroke="#e6a817" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="140" y1="200" x2="360" y2="200"/>
+    <polyline points="292,140 360,200 292,260"/>
+  </g>
+  <!-- Arrow left (bottom) -->
+  <g stroke="#e6a817" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="372" y1="312" x2="152" y2="312"/>
+    <polyline points="220,252 152,312 220,372"/>
+  </g>
+</svg>
